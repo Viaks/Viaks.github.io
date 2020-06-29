@@ -30,10 +30,10 @@ function init(){
     document.querySelector('.player-0-panel').classList.add('active');
     document.querySelector('.player-1-panel').classList.remove('winner');
     document.querySelector('.player-0-panel').classList.remove('winner');
-    var player1='MADHU';
-    var player2='Didi';
-    // player1=prompt('Enter first player name');
-    // player2=prompt('Enter second player name');
+    var player1='Player1';
+    var player2='Player2';
+    player1=prompt('Enter first player name');
+    player2=prompt('Enter second player name');
     document.querySelector('#name-0').textContent=player1;
     document.querySelector('#name-1').textContent=player2;
     gameplay=true;
