@@ -34,8 +34,8 @@ function init(){
     var player2='Player2';
     player1=prompt('Enter first player name');
     player2=prompt('Enter second player name');
-    document.querySelector('#name-0').textContent=player1;
-    document.querySelector('#name-1').textContent=player2;
+    document.querySelector('#name-0').textContent='player1';
+    document.querySelector('#name-1').textContent='player2';
     gameplay=true;
 }
 document.querySelector('.btn-roll').addEventListener('click',function () {
