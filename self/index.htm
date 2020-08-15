@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
+  <title>Course Grades - IITK</title>
+
+  <!-- CSS  -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-44797524-2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-44797524-2');
+  </script>
+</head>
+<body>
+  <nav class="light-blue lighten-1" role="navigation">
+    <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo center">Course Grades - IITK</a>
+
+      <ul id="nav-mobile" class="sidenav">
+        <li><a href="#">Navbar Link</a></li>
+      </ul>
+      <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+    </div>
+  </nav>
+
+  <div class="main-contain center-align">
+    <div class="container">
+    <div class="section">
+      <div class="row">
+        <div class="col input-field">
+          <input type="text" list="academic-session" placeholder="Academic Session" id="academic-session-input" />
+          <datalist id="academic-session"></datalist>
+        </div>
+        <div class="col input-field">
+          <select name="semester" id="semester">
+            <option value="" disabled selected>Choose semester</option>
+          </select>
+        </div>
+        <div class="col input-field">
+          <input type="text" list="course-list" placeholder="Course" id="course"/>
+          <datalist id="course-list"></datalist>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3 id="course-name"></h3>
+      
+      <section>
+        <div class="pieID pie">
+          
+        </div>
+        <ul class="pieID legend" id="legend">
+          <li>
+            <em>Maggus</em>
+            <span>718</span>
+          </li>
+          <li>
+            <em>Lassods</em>
+            <span>531</span>
+          </li>
+          <li>
+            <em>Cats</em>
+            <span>868</span>
+          </li>
+          <li>
+            <em>Aliens</em>
+            <span>15</span>
+          </li>
+          <li>
+            <em>OEs accepted</em>
+            <span>0</span>
+          </li>
+        </ul>
+      </section>
+      <h5 id="total-students"></h5>
+    </div>
+  </div>
+  </div>
+  
+  <footer>
+    <div class="container center-align">
+    <h5>Hosted on <a href="https://github.com/jaynarw/grades-iitk" target="_blank">Github</a></h5>
+    </div>
+</footer>
+
+<script>
+  let flattenedGrades = null; 
+  enableForm = () => {
+    console.log('Form Enabled!');
+    Object.keys(flattenedGrades).forEach((session) => {
+      const option = document.createElement('option');
+      option.value=session;
+      document.getElementById('academic-session').appendChild(option);
+    });
+  };
+  fetch('https://raw.githubusercontent.com/jaynarw/grades-iitk/master/flattenedGrades.json')
+    .then((res) => res.json())
+    .then((grades) => {
+      flattenedGrades = grades;
+      enableForm();
+  });
+  const academicSessionInput = document.getElementById('academic-session-input');
+  const semesterInput = document.getElementById('semester');
+  const courseList = document.getElementById('course-list');
+  academicSessionInput.addEventListener('input', function () {
+  semesterInput.innerHTML = '<option value="" disabled selected>Choose semester</option>';
+  document.getElementById('course-list').innerHTML = '';
+  document.getElementById('course').value='';
+   if (flattenedGrades[academicSessionInput.value]) {
+    Object.keys(flattenedGrades[academicSessionInput.value]).forEach((sem) => {
+      const option = document.createElement('option');
+      option.value=sem;
+      option.innerText = sem;
+      semesterInput.appendChild(option);
+    });
+    
+   }
+   const elems = document.querySelectorAll('select');
+    const instances = M.FormSelect.init(elems, {});
+  });
+  document.querySelector('select').addEventListener('change', () => {
+    document.getElementById('course-list').innerHTML = '';
+    document.getElementById('course').value='';
+    const sem = document.querySelector('select').selectedOptions[0].value;
+    const session = academicSessionInput.value;
+    if (flattenedGrades[session] && flattenedGrades[session][sem]) {
+      Object.keys(flattenedGrades[session][sem]).forEach((courseID) => {
+        const option = document.createElement('option');
+        option.value=`${flattenedGrades[session][sem][courseID]["CourseName"]} - (${courseID})`;
+        document.getElementById('course-list').appendChild(option);
+      });
+    }
+  });
+
+  document.getElementById('course').addEventListener('input', () => {
+    const course = document.getElementById('course').value.match(/\((.*)\)/)[1];
+    const sem = document.querySelector('select').selectedOptions[0].value;
+    const session = academicSessionInput.value;
+    if (flattenedGrades[session] && flattenedGrades[session][sem] && flattenedGrades[session][sem][course]) {
+      document.getElementById('course-name').textContent = `${flattenedGrades[session][sem][course]["CourseName"]} - (${course})`;
+      const legend = document.getElementById('legend');
+      legend.innerHTML = '';
+      const { CourseName, Grades} = flattenedGrades[session][sem][course];
+      Object.keys(Grades).sort().forEach((grade) => {
+        if (grade!=='Total') {
+          const listItem = document.createElement('li');
+          const listName = document.createElement('em');
+          const numbers = document.createElement('span');
+          numbers.textContent = Grades[grade];
+          listName.textContent = grade.trim();
+          listItem.appendChild(listName);
+          listItem.appendChild(numbers);
+          legend.appendChild(listItem);
+        }
+      });
+      document.getElementById('total-students').textContent = `Total students - ${flattenedGrades[session][sem][course]["Grades"]['Total']}`;
+      createPie(".pieID.legend", ".pieID.pie");
+    }
+  });
+
+  function sliceSize(dataNum, dataTotal) {
+  return (dataNum / dataTotal) * 360;
+}
+function addSlice(sliceSize, pieElement, offset, sliceID, color) {
+  $(pieElement).append("<div class='slice "+sliceID+"'><span></span></div>");
+  var offset = offset - 1;
+  var sizeRotation = -179 + sliceSize;
+  $("."+sliceID).css({
+    "transform": "rotate("+offset+"deg) translate3d(0,0,0)"
+  });
+  $("."+sliceID+" span").css({
+    "transform"       : "rotate("+sizeRotation+"deg) translate3d(0,0,0)",
+    "background-color": color
+  });
+}
+function iterateSlices(sliceSize, pieElement, offset, dataCount, sliceCount, color) {
+  var sliceID = "s"+dataCount+"-"+sliceCount;
+  var maxSize = 179;
+  if(sliceSize<=maxSize) {
+    addSlice(sliceSize, pieElement, offset, sliceID, color);
+  } else {
+    addSlice(maxSize, pieElement, offset, sliceID, color);
+    iterateSlices(sliceSize-maxSize, pieElement, offset+maxSize, dataCount, sliceCount+1, color);
+  }
+}
+function createPie(dataElement, pieElement) {
+  var listData = [];
+  $(dataElement+" span").each(function() {
+    listData.push(Number($(this).html()));
+  });
+  var listTotal = 0;
+  for(var i=0; i<listData.length; i++) {
+    listTotal += listData[i];
+  }
+  var offset = 0;
+  var color = [
+    "cornflowerblue", 
+    "olivedrab", 
+    "orange", 
+    "tomato", 
+    "crimson", 
+    "purple", 
+    "turquoise", 
+    "forestgreen", 
+    "navy", 
+    "gray"
+  ];
+  for(var i=0; i<listData.length; i++) {
+    var size = sliceSize(listData[i], listTotal);
+    iterateSlices(size, pieElement, offset, i, 0, color[i]);
+    $(dataElement+" li:nth-child("+(i+1)+")").css("border-color", color[i]);
+    offset += size;
+  }
+}
+createPie(".pieID.legend", ".pieID.pie");
+
+</script>
+  <!--  Scripts-->
+  <script src="js/materialize.js"></script>
+  <script src="js/init.js"></script>
+
+  </body>
+</html>
